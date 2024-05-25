@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/bootstrap.css">
+    <script href="/bootstrap.js"></script>
+
+    <title>Gameplay</title>
+</head>
+<body>
+  <div align="right">
+    <a href="/link">Menu</a>
+
+    <a href="/logout">Logout</a>
+</div>
+    <div class="container">
+        <div class="row">
+          <div class="col-12">
+            <div align="center">
+            <img src="/logo.png" alt="">
+            <h1>Gameplay</h1>
+            <h6 style="color:rgb(255, 141, 11)">NOTE: DATA HERE IS ONLY UPDATED ON A USERACTION(BUTTON PRESS) AND MAY NOT ALWAYS BE RECENT!!!</h4>
+
+        </div>
+            <table class="table table-bordered">
+              <thead>
+                <tr>
+                  <th scope="col">No.</th>
+                  <th scope="col">Name</th>
+                  <th scope="col">RegistrationID</th>
+                  <th scope="col">UserID</th>
+                  <th scope="col">Score</th>
+                  <th scope="col">Qualified</th>
+
+                  <th scope="col">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+     
+                <% for (var i = 0; i < data.length;  i++) { %>
+     
+                <tr>
+                  <th scope="row"><%= i+1 %></th>
+                  <td><%= data[i].name %></td>
+                  <td><%= data[i].rid %></td>
+                  <td><%= data[i].uid %></td>
+
+                  <td><%= data[i].score %></td>
+                  <td><%= data[i].qualified %></td>
+
+                  <td>
+                    <form action="/userAction" method="POST">
+                        <input type="hidden" id="" name="regid" value=<%= data[i].rid %>>
+                  <button type="submit" class="btn btn-danger" name="disqualify" value="true">Disqualify<i class="far fa-trash-alt"></i></button>
+                  <button type="submit" class="btn btn-info"name="requalify" value="true" > Requalify<i class="far fa-trash-alt"></i></button>
+
+                  <button type="submit" class="btn btn-success" name="plus1" value="true">+1<i class="far fa-trash-alt"></i></button>
+                  <button type="submit" class="btn btn-warning" name="minus1" value="true"  >-1<i class="far fa-trash-alt"></i></button>
+
+                </form>  
+                
+                </td>
+                </tr>
+                <% } %>
+
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+</body>
+</html>

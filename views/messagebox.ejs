@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/bootstrap.css">
+    <meta http-equiv="refresh" content="60" >
+    <script href="/bootstrap.js"></script>
+    <title>MessageBox</title>
+</head>
+<body>
+    <style>
+        .container {
+          height: 200px;
+          position: relative;
+          border: 3px solid green;
+        }
+        
+        .card {
+          margin: 0;
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          -ms-transform: translate(-50%, -50%);
+          transform: translate(-50%, -50%);
+        }
+        .info{
+            display: flex;
+  justify-content: space-around
+        }
+        </style>
+        <div align="center">
+          <form action="/clrmsg" method="GET" >
+            <input type="submit" value="Clear Message Box" class="btn btn-outline-secondary">
+           </form>
+           <br>
+           <h4 class="display-6" style="color:orange;">It may take up to a minute for your message to reflect here :)</h4>
+        </div>
+           <div class="card" align="center">
+        
+    <div class="jumbotron">
+        <h1 class="display-3">New Message!</h1>
+        <p class="lead"><%=msg%></p>
+        <hr class="my-4">
+<div class="info">
+    <h2 class="dispaly-3" align="left"><%=name%></h2>
+    <h2 class="dispaly-3" align="right"><%=rid%></h2>
+</div>
+    </div>
+  
+</div>
+
+    
+</body>
+</html>

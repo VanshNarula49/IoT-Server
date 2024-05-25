@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/bootstrap.css">
+    <script href="/bootstrap.js"></script>
+
+    <title>Register</title>
+</head>
+<body>
+  <div align="right">
+    <a href="/link">Menu</a>
+    <a href="/logout">Logout</a>
+</div>
+
+    <div class="container">
+        <div class="row">
+          <div class="col-12">
+            <div align="center">
+            <img src="/logo.png" alt="">
+           
+            <h1>Registration Form</h2>
+              <h6 style="color:rgb(255, 141, 11)">NOTE: DATA HERE IS ONLY UPDATED ON A USERACTION(BUTTON PRESS) AND MAY NOT ALWAYS BE RECENT!!!</h4>
+
+                <h2 style=<%=alertColor%> ><%=msg%></h3>
+                
+                <form action="/register" method="POST">
+                  <label for="fname">Name:</label><br>
+                  <input type="text" id="name" name="name" value=""placeholder="Enter Name"><br>
+                  <label for="lname">Email ID:</label><br>
+                  <input type="email" id="email" name="email" value=""placeholder="Enter Email ID"><br>
+                  <label for="lname">Registration ID:</label><br>
+                  <input type="text" id="rid" name="rid" value=""placeholder="Enter Registration ID"><br><br>
+                  <input type="submit" value="Submit" class="btn btn-dark">
+                </form> 
+       
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+            <h1>Registered Users</h1>
+
+        </div>
+            <table class="table table-bordered">
+              <thead>
+                <tr>
+                  <th scope="col">No.</th>
+                  <th scope="col">Name</th>
+                  <th scope="col">RegistrationID</th>
+                  <th scope="col">UserID</th>
+                  <th scope="col">EmailID</th>
+
+                  <th scope="col">Score</th>
+                  <th scope="col">Qualified</th>
+
+                  <th scope="col">Delete</th>
+                  <th scope="col">Email</th>
+
+                </tr>
+              </thead>
+              <tbody>
+     
+                <% for (var i = 0; i < data.length;  i++) { %>
+     
+                <tr>
+                  <th scope="row"><%= i+1 %></th>
+                  <td><%= data[i].name %></td>
+                  <td><%= data[i].rid %></td>
+                  <td><%= data[i].uid %></td>
+                  <td><%= data[i].email %></td>
+
+
+                  <td><%= data[i].score %></td>
+                  <td><%= data[i].qualified %></td>
+
+                  <td>
+                    <form action="/delete" method="POST">
+                        <input type="hidden" id="" name="regid" value=<%= data[i].rid %>>
+                  <button type="submit" class="btn btn-danger" >Delete<i class="far fa-trash-alt"></i></button>
+                </form>  
+                <td>
+                <form action="/mail" method="POST">
+                  <input type="hidden" id="" name="regid" value=<%= data[i].rid %>>
+            <button type="submit" class="btn btn-success" >Mail ID<i class="far fa-trash-alt"></i></button>
+          </form> 
+        </td>
+                </td>
+                </tr>
+                <% } %>
+
+              </tbody>
+            </table>
+            <br>
+            <form action="/mailall" method="POST" align="center">
+             <input type="submit" value="Email All" class="btn btn-outline-secondary">
+            </form>
+          </div>
+        </div>
+      </div>
+</body>
+</html>
