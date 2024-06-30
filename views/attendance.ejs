@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Board</title>
+    <style>
+        body {
+            background: linear-gradient(135deg, #eceff1, #ffffff);
+            font-family: 'Roboto', sans-serif;
+            color: #263151;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+        }
+        .header img {
+            width: 80px;
+            margin-right: 10px;
+            filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
+        }
+        h1 {
+            font-size: 2.5em;
+            font-weight: 600;
+            margin: 0;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align items to the top */
+            max-width: 1200px;
+            width: 90%;
+            background: #f0f0f0; /* Light grey background */
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+            margin-top: 100px; /* Adjusted to provide space for the header */
+        }
+        .door-container {
+            position: relative;
+            width: 300px;
+            height: 500px;
+            background: #f0f0f0; /* Light grey background for closed door */
+            border: 6px solid #263151; /* Dark blue border */
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            z-index: 1;
+        }
+        .door {
+            position: absolute;
+            width: 90%;
+            height: 80%;
+            background: #263151; /* Dark blue background for open door */
+            border-radius: 0 0 12px 12px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3); /* Outer shadow */
+            transition: transform 0.5s ease-in-out;
+            transform-origin: bottom center;
+            bottom: 0;
+            z-index: 1;
+        }
+        .door.open {
+            transform: translateY(-100%);
+        }
+        .door img {
+            width: 100px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .digital-display {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            text-align: center;
+            font-size: 4em;
+            color: #333;
+            background-color: rgba(255, 255, 255, 0.7); /* Light white background */
+            z-index: 3;
+            clip-path: polygon(0% 0%, 100% 0%, 80% 50%, 100% 100%, 0% 100%);
+            transition: transform 0.5s ease-in-out;
+            transform: translateY(0); /* Initially hidden */
+        }
+        .digital-display.open {
+            transform: translateY(-100%);
+        }
+        .welcome-message {
+            font-size: 2em;
+            color: #263151; /* Dark blue for text */
+            text-align: center;
+            margin-top: 20px;
+            display: none; /* Hidden by default */
+            animation: fadeInOut 3s ease-in-out;
+        }
+        .welcome-message.show {
+            display: block;
+        }
+        @keyframes fadeInOut {
+            0%, 100% {
+                opacity: 0;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+        .attendance-board {
+            width: 60%;
+            margin-left: 20px; /* Adjusted to accommodate space */
+            overflow: hidden; /* Ensure only 5 entries are visible */
+        }
+        #attendance-board {
+            font-family: 'Roboto', sans-serif;
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+            table-layout: fixed; /* Ensures consistent column width */
+        }
+        #attendance-board th, #attendance-board td {
+            border: 1px solid #263151; /* Dark blue border */
+            padding: 12px;
+            text-align: left;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        #attendance-board th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            background-color: #263151; /* Dark blue header */
+            color: #ffffff; /* White text */
+            font-size: 1.2em;
+        }
+        #attendance-board td {
+            color: #263151; /* Dark blue text */
+            font-size: 1.1em;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="/logo.png" alt="Logo">
+        <h1>Attendance Board</h1>
+    </div>
+
+    <div class="container">
+        <div class="door-container">
+            <!-- Logo image (replace with actual logo) -->
+            <img src="/logo.png" alt="Logo">
+            <div class="door" id="door"></div>
+            <div class="digital-display" id="digital-display">
+                <div id="welcome-name"></div>
+                <div id="welcome-time"></div>
+            </div>
+        </div>
+
+        <div class="attendance-board">
+            <div class="welcome-message" id="welcome-message">Welcome, <span id="welcome-name-msg"></span>!</div>
+            <table id="attendance-board">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+                <tbody id="attendance-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const attendanceTable = document.getElementById("attendance-body");
+            const door = document.getElementById("door");
+            const digitalDisplay = document.getElementById("digital-display");
+            const welcomeMessage = document.getElementById("welcome-message");
+            const welcomeNameMsg = document.getElementById("welcome-name-msg");
+
+            function fetchAttendanceData() {
+                fetch("/attendanceData")
+                    .then(response => response.json())
+                    .then(data => {
+                        // Filter out entries with no lastAttendance
+                        data = data.filter(entry => entry.lastAttendance);
+
+                        // Sort data by lastAttendance in descending order
+                        data.sort((a, b) => new Date(b.lastAttendance) - new Date(a.lastAttendance));
+
+                        // Update table with latest 5 entries
+                        updateAttendanceTable(data.slice(0, 5));
+                    })
+                    .catch(error => console.error("Error fetching attendance data:", error));
+            }
+
+            function updateAttendanceTable(data) {
+                attendanceTable.innerHTML = ""; // Clear existing rows
+
+                data.forEach(user => {
+                    const row = document.createElement("tr");
+                    const nameCell = document.createElement("td");
+                    const timeCell = document.createElement("td");
+
+                    nameCell.textContent = user.name || "N/A";
+                    timeCell.textContent = user.lastAttendance ? new Date(user.lastAttendance).toLocaleString() : "N/A";
+
+                    row.appendChild(nameCell);
+                    row.appendChild(timeCell);
+                    attendanceTable.appendChild(row);
+                });
+            }
+
+            // EventSource to handle attendance stream updates
+            const eventSource = new EventSource("/attendanceStream");
+            eventSource.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+
+                // Show welcome message with name
+                welcomeNameMsg.textContent = data.name;
+                welcomeMessage.style.display = 'block'; // Display the message
+
+                // Open the door and display digital display
+                door.classList.add("open");
+                digitalDisplay.classList.add("open");
+
+                // Close the door and hide welcome message after 3 seconds
+                setTimeout(() => {
+                    door.classList.remove("open");
+                    digitalDisplay.classList.remove("open");
+                    welcomeMessage.style.display = 'none'; // Hide the message
+                }, 3000);
+            };
+
+            // Fetch attendance data every 200ms
+            setInterval(fetchAttendanceData, 200);
+        });
+    </script>
+</body>
+</html>

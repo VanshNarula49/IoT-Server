@@ -1,7 +1,7 @@
 import express from "express";
 import uniqueid from "generate-unique-id";
 const app = express();
-app.listen(3000);
+app.listen(3001);
 app.set("view engine", "ejs");
 app.use(express.static("public"));
 import bodyParser from "body-parser";
@@ -55,6 +55,14 @@ app.get("/leaderboardShowcase", adminAuth, async (req, res) => {
     .toArray();
   res.render("leaderboardShow", { data: userdata });
 });
+// Example route to fetch leaderboard data
+app.get("/leaderboardShowcaseapi", adminAuth, async (req, res) => {
+  let userdata = await UserCollection.find({ qualified: true })
+    .sort(scoreSort)
+    .toArray();
+  res.json(userdata); // Return JSON response for AJAX request
+});
+
 
 app.post("/userAction", adminAuth, async (req, res) => {
   if (req.body.disqualify == "true") {
@@ -134,10 +142,10 @@ app.post("/mail", adminAuth, async (req, res) => {
 
   let customMessage = (email, name, pswd) => {
     return {
-      from: " TITS <tits@robify.in>",
+      from: "IOT Platform <iotify@robify.in>",
       to: email,
       subject: "Email for User ID",
-      text: `Hello ${name}, your user id for TITS is : ${pswd}`,
+      text: `Hello ${name}, your user id for IOT Platform is : ${pswd}`,
     };
   };
   let mailuser = await UserCollection.findOne({ rid: req.body.regid });
@@ -157,10 +165,10 @@ app.post("/mailall", adminAuth, async (req, res) => {
 
   let customMessage = (email, name, pswd) => {
     return {
-      from: " TITS <tits@robify.in>",
+      from: "IOT Platform <iotify@robify.in>",
       to: email,
       subject: "Email for User ID",
-      text: `Hello ${name}, your user id for TITS is : ${pswd}`,
+      text: `Hello ${name}, your user id for IOT Platform is : ${pswd}`,
     };
   };
   let userdata = await UserCollection.find({ qualified: true })
@@ -262,7 +270,7 @@ app.get("/rgbactivity/", async (req, res) => {
   );
 });
 
-let msgdata = { name: "Robify", rid: "", msg: "I am a message box. Fill me " };
+let msgdata = { };
 app.get("/msgbox", adminAuth, (req, res) => {
   res.render("messagebox", {
     msg: msgdata.msg,
@@ -271,46 +279,47 @@ app.get("/msgbox", adminAuth, (req, res) => {
   });
 });
 app.get("/clrmsg", adminAuth, (req, res) => {
-  msgdata = { name: "Robify", rid: "", msg: "I am a message box. Fill me " };
+  msgdata = { name: "Robify", rid: "🤖🦾👽", msg: "I am a message box. Fill me " };
   res.redirect("/msgbox");
 });
 
 app.post("/msgactivity/:uid", async (req, res) => {
-  let user = await UserCollection.findOne({ uid: req.params.uid });
-  if (user == null) {
-    res.send("user does not exist");
-  } else {
-    if (user.qualified == false) {
-      res.send("DISQUALIFIED!");
-    } else {
-      if (
-        req.body == {} ||
-        req.body.message == undefined ||
-        req.body.message == ""
-      ) {
-        res.send("Invalid Data");
-      } else {
-        if (user.msgboxact == false) {
-          await UserCollection.updateOne(
-            { rid: user.rid },
-            { $inc: { score: +3 }, $set: { msgboxact: true } }
-          );
-          if (req.body.message.length <= 250) {
-            msgdata.name = user.name;
-            msgdata.rid = user.rid;
-            msgdata.msg = req.body.message;
-            res.send("GoodJob");
-          } else {
-            msgdata.name = user.name;
-            msgdata.rid = user.rid;
-            msgdata.msg = req.body.message.slice(0, 250);
-            res.send("GoodJob");
-          }
-        } else {
-          res.send("Already Done");
-        }
-      }
+  try {
+    let user = await UserCollection.findOne({ uid: req.params.uid });
+    
+    if (!user) {
+      return res.status(404).send("User does not exist");
     }
+
+    if (user.qualified === false) {
+      return res.send("DISQUALIFIED!");
+    }
+
+    const { message } = req.body;
+
+    if (!message) {
+      return res.status(400).send("Invalid Data");
+    }
+
+    if (!user.msgboxact) {
+      await UserCollection.updateOne(
+        { rid: user.rid },
+        { $inc: { score: 3 }, $set: { msgboxact: true } }
+      );
+      msgdata.name = user.name;
+      msgdata.rid = user.rid;
+      msgdata.msg = message.length <= 250 ? message : message.slice(0, 250);
+      return res.send("GoodJob");
+    } else {
+      // Allow the user to send the message even if they have already been scored
+      msgdata.name = user.name;
+      msgdata.rid = user.rid;
+      msgdata.msg = message.length <= 250 ? message : message.slice(0, 250);
+      return res.send("Message received but already scored");
+    }
+  } catch (error) {
+    console.error("Error handling message activity:", error);
+    return res.status(500).send("Internal Server Error");
   }
 });
 
@@ -496,8 +505,95 @@ app.get("/quiz4", async (req, res) => {
     }
   }
 });
+// Store connected clients
+const clients = [];
 
-app.get('/service',(req,res)=>{
+// SSE endpoint for attendance stream
+app.get('/attendanceStream', adminAuth, (req, res) => {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+
+  // Add the client to the list
+  clients.push(res);
+
+  // Send a keep-alive comment every 5 seconds to keep the connection alive
+  const keepAliveInterval = setInterval(() => {
+    res.write(': keep-alive\n\n');
+  }, 5000);
+
+  // Remove the client when they disconnect
+  req.on('close', () => {
+    clearInterval(keepAliveInterval);
+    clients.splice(clients.indexOf(res), 1);
+  });
+});
+
+// Function to send data to all connected clients
+function sendAttendanceUpdate(data) {
+  clients.forEach(client => {
+    client.write(`data: ${JSON.stringify(data)}\n\n`);
+  });
+}
+// Modify the /attendance endpoint to send updates
+app.post('/attendance', async (req, res) => {
+  const userId = req.body.userId;
+
+  if (!userId) {
+    return res.status(400).send('User ID is required');
+  }
+
+  try {
+    const user = await UserCollection.findOne({ uid: userId });
+
+    if (!user) {
+      return res.status(404).send('User does not exist');
+    }
+
+    const now = new Date();
+
+    if (!user.lastAttendance) {
+      // First time attendance
+      await UserCollection.updateOne(
+        { uid: userId },
+        { $set: { lastAttendance: now }, $inc: { score: 3 } }
+      );
+      sendAttendanceUpdate({ userId, name: user.name, score: user.score + 3 });
+      return res.status(200).send(`Attendance marked for user ${userId}. Score: ${user.score + 3}`);
+    } else {
+      // Update last attendance time
+      await UserCollection.updateOne(
+        { uid: userId },
+        { $set: { lastAttendance: now } }
+      );
+      sendAttendanceUpdate({ userId, name: user.name, score: user.score });
+      return res.status(200).send(`Attendance marked for user ${userId}. Score: ${user.score}`);
+    }
+  } catch (error) {
+    console.error('Error marking attendance:', error);
+    return res.status(500).send('Internal Server Error');
+  }
+});
+
+// New route to fetch attendance data
+app.get('/attendanceData', adminAuth, async (req, res) => {
+  try {
+    const users = await UserCollection.find({}, { projection: { _id: 0, uid: 1, name: 1, lastAttendance: 1 } }).toArray();
+    res.json(users);
+  } catch (error) {
+    console.error('Error fetching attendance data:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+app.get('/attendanceshow',adminAuth,(req,res)=>{
+	res.render('attendance');
+});
+
+app.get('/service',adminAuth,(req,res)=>{
   UserCollection.updateMany({},{$set: { quiz1: false ,quiz2: false,quiz3:false,quiz4:false}})
 
 })
+app.get('/tits',(req,res)=>{
+	res.render('jain');
+});

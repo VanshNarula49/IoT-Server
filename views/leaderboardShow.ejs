@@ -4,45 +4,169 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/bootstrap.css">
-    <script href="/bootstrap.js"></script>
+    <script src="/bootstrap.js"></script>
     <title>Leaderboard</title>
-    <meta http-equiv="refresh" content="5" >
+    <style>
+        body {
+            background: linear-gradient(135deg, #eceff1, #ffffff);
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            color: #333;
+            padding: 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .header img {
+            width: 80px;
+            margin-right: 10px;
+        }
+        h1 {
+            color: #263151;
+            font-size: 2.5em;
+            font-weight: 600;
+            margin: 0;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            max-width: 900px;
+            margin: 0 auto;
+            backdrop-filter: blur(10px);
+        }
+        .table thead th {
+            background-color: #263151;
+            color: white;
+            text-align: center;
+            border: none;
+        }
+        .table tbody tr {
+            border-bottom: 1px solid #e0e0e0;
+            transition: transform 0.3s ease;
+        }
+        .table tbody tr:hover {
+            background-color: #f1f2f6;
+        }
+        .name {
+            font-weight: 500;
+            font-size: 1.1em;
+        }
+        .score {
+            font-weight: 700;
+            font-size: 1.2em;
+            color: #263151;
+        }
+        th, td {
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        /* Animation classes */
+        @keyframes rowClimbUp {
+            0% { transform: translateY(20px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes rowClimbDown {
+            0% { transform: translateY(-20px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        .row-climb-up {
+            animation: rowClimbUp 0.5s forwards;
+        }
+
+        .row-climb-down {
+            animation: rowClimbDown 0.5s forwards;
+        }
+    </style>
 </head>
 <body>
 
+    <div class="header">
+        <img src="/logo.png" alt="Logo">
+        <h1>Leaderboard</h1>
+    </div>
+
     <div class="container">
         <div class="row">
-          <div class="col-12">
-            <div align="center">
-            <img src="/logo.png" alt="">
-            <h1>Leaderboard</h1>
-
+            <div class="col-12">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">No.</th>
+                            <th scope="col">Name</th>
+                            <th scope="col">Registration ID</th>
+                            <th scope="col">Score</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboardBody">
+                        <!-- Leaderboard rows will be added dynamically -->
+                    </tbody>
+                </table>
+            </div>
         </div>
-            <table class="table table-bordered">
-              <thead>
-                <tr>
-                  <th scope="col">No.</th>
-                  <th scope="col">Name</th>
-                  <th scope="col">RegistrationID</th>
-                  <th scope="col">Score</th>
-                </tr>
-              </thead>
-              <tbody>
-     
-                <% for (var i = 0; i < data.length;  i++) { %>
-     
-                <tr>
-                  <th scope="row"><%= i+1 %></th>
-                  <td><%= data[i].name %></td>
-                  <td><%= data[i].rid %></td>
-                  <td><%= data[i].score %></td>
-                </tr>
-                <% } %>
+    </div>
 
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+    <script>
+        let previousData = []; // Store previous data globally
+
+        // Function to fetch leaderboard data and update the DOM
+        function fetchLeaderboard() {
+            fetch('/leaderboardShowcaseapi')
+                .then(response => response.json())
+                .then(data => {
+                    const leaderboardBody = document.getElementById('leaderboardBody');
+                    const newRows = [];
+
+                    // Compare current data with previous data to determine animations
+                    data.forEach((item, index) => {
+                        const previousItem = previousData[index];
+
+                        if (!previousItem || previousItem.score !== item.score) {
+                            const animationClass = previousItem && previousItem.score < item.score ? 'row-climb-up' : 'row-climb-down';
+                            const newRow = `
+                                <tr class="${animationClass}">
+                                    <th scope="row">${index + 1}</th>
+                                    <td class="name">${item.name}</td>
+                                    <td>${item.rid}</td>
+                                    <td class="score">${item.score}</td>
+                                </tr>
+                            `;
+                            newRows.push(newRow);
+                        } else {
+                            // If score hasn't changed, add the row without animation class
+                            const newRow = `
+                                <tr>
+                                    <th scope="row">${index + 1}</th>
+                                    <td class="name">${item.name}</td>
+                                    <td>${item.rid}</td>
+                                    <td class="score">${item.score}</td>
+                                </tr>
+                            `;
+                            newRows.push(newRow);
+                        }
+                    });
+
+                    // Update leaderboard body with new rows
+                    leaderboardBody.innerHTML = newRows.join('');
+
+                    // Update previousData with current data for next comparison
+                    previousData = data;
+                })
+                .catch(error => console.error('Error fetching leaderboard:', error));
+        }
+
+        // Fetch leaderboard data initially
+        fetchLeaderboard();
+
+        // Fetch leaderboard data every 0.5 seconds
+        setInterval(fetchLeaderboard, 500);
+    </script>
 </body>
 </html>

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/bootstrap.css">
+    <script src="/bootstrap.js"></script>
+    <title>Robify IoT Easter Egg</title>
+    <style>
+        /* Initial playful styles */
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background-color: #ffeb3b;
+            color: #3f51b5;
+            text-align: center;
+            padding: 50px;
+             animation: flicker 0.5s infinite;
+         }
+
+        .container {
+            background-color: pink;
+            padding: 20px;
+            border: 10px solid #ff4081;
+            animation: spin 7s linear infinite ,flicker 0.5s infinite;
+            }
+
+        h1 {
+            font-size: 3em;
+            text-shadow: 2px 2px #e91e63;
+            animation: blink 2s infinite;
+        }
+
+        p {
+            font-size: 1.5em;
+            line-height: 1.5em;
+            margin: 20px 0;
+            animation: move 4s infinite;
+        }
+
+        img {
+            width: 200px;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        button {
+            font-size: 1em;
+            padding: 10px 20px;
+            margin-top: 20px;
+            background-color: #3f51b5;
+            color: #ffffff;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #303f9f;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        @keyframes move {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(100px); }
+            100% { transform: translateX(0); }
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0); }
+        }
+
+@keyframes flicker {
+    0% { background-color: #ff6347; }
+    10% { background-color: #00bfff; }
+    20% { background-color: #7fff00; }
+    30% { background-color: #dda0dd; }
+    40% { background-color: #ffd700; }
+    50% { background-color: #8a2be2; }
+    60% { background-color: #00fa9a; }
+    70% { background-color: #ff69b4; }
+    80% { background-color: #1e90ff; }
+    90% { background-color: #ff8c00; }
+    100% { background-color: #4b0082; }
+}
+
+        /* Styles for professional look */
+        .professional {
+            background-color: #eceff1 !important;
+            color: #333 !important;
+            padding: 20px !important;
+            font-family: 'Helvetica Neue', Arial, sans-serif !important;
+            text-align: left !important;
+            animation: none !important;
+        }
+
+        .professional h1 {
+            color: #263151 !important;
+            font-size: 2.5em !important;
+            font-weight: 600 !important;
+            margin: 0 auto;
+            width: 90%;            
+            text-align: center;
+	    text-shadow: 0px 0px #ffffff;
+        }
+
+        .professional .container {
+            background: rgba(255, 255, 255, 0.9) !important;
+            padding: 30px !important;
+            border-radius: 12px !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+            max-width: 900px !important;
+            margin: 0 auto !important;
+            backdrop-filter: blur(10px) !important;
+            border: none !important;
+            animation: none !important;
+        }
+
+        .professional p {
+            font-size: 1.2em !important;
+            line-height: 1.5em !important;
+            margin: 20px 0 !important;
+            animation: none !important;
+        }
+
+        .professional img {
+            animation: none !important;
+            width: 80px !important;
+            margin-left: 10px !important;
+        }
+
+        .professional button {
+            padding: 10px 20px;
+            font-size: 1em;
+            background-color: #dc3545;
+            border: none;
+            color: #fff;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .professional button:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="https://iot.robify.in/logo.png" alt="Robify IoT Platform Logo">
+        <h1>Robify IoT Easter Egg</h1>
+        <p>Welcome to the hidden corner of the Robify IoT Platform!</p>
+        <p>This platdorm ,whimsically named 'tits' during our development phase, is a tribute to Technology and Integration Testing Software.</p>
+        <p>Enjoy this playful animation while you explore our cutting-edge IoT solutions. We promise, the rest of our platform is much more serious!</p>
+        <button onclick="makeProfessional()">Stop the Fun</button>
+    </div>
+    <script>
+        function makeProfessional() {
+            document.body.className = 'professional';
+            document.body.innerHTML = `
+                <div class="professional">
+                    
+                        <img src="https://iot.robify.in/logo.png" alt="Logo">
+<div class="container">
+<div class="head">
+                      <h1>Robify IoT Easter Egg</h1>
+        <p>Welcome to the hidden corner of the Robify IoT Platform!</p>
+        <p>This platdorm ,whimsically named 'tits' during our development phase, is a tribute to Technology and Integration Testing Software.</p>
+        <p>Enjoy this playful animation while you explore our cutting-edge IoT solutions. We promise, the rest of our platform is much more serious!</p>
+                    </div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
