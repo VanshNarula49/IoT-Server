@@ -85,10 +85,3 @@ This platform is ideal for:
 - Remote learning environments for embedded systems
 - Technical training programs
 
-## Contributors
-
-[Your name or organization]
-
-## License
-
-[Specify your license here]
