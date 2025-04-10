@@ -12,7 +12,7 @@ app.use(cookieParser());
 import formData from "form-data";
 import Mailgun from "mailgun.js";
 const API_KEY = "";
-const DOMAIN = "robify.in";
+const DOMAIN = ";
 const mailgun = new Mailgun(formData);
 const emailclient = mailgun.client({ username: "api", key: API_KEY });
 const adminPassword = "Robify678";
