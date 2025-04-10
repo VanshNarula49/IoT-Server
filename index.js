@@ -11,13 +11,13 @@ import cookieParser from "cookie-parser";
 app.use(cookieParser());
 import formData from "form-data";
 import Mailgun from "mailgun.js";
-const API_KEY = "be96e32ddfab7951c7aca39eba638f7a-77316142-1e5b45e5";
-const DOMAIN = "robify.in";
+const API_KEY = "";
+const DOMAIN = ";
 const mailgun = new Mailgun(formData);
 const emailclient = mailgun.client({ username: "api", key: API_KEY });
 const adminPassword = "Robify678";
 import { MongoClient } from "mongodb";
-const url = "mongodb+srv://vansh:wF0EiAtblcJY68rE@cluster.q2mmc.mongodb.net/";
+const url = "";
 const client = new MongoClient(url);
 const dbName = "Robify";
 
@@ -29,8 +29,7 @@ async function main() {
 main().then(console.log).catch(console.error);
 const db = client.db(dbName);
 const UserCollection = db.collection("RobifyUsers");
-const securecookie =
-  "be96e32ddfab7951c7aca39eba638f7abe96e32ddfab7951c7aca39eba638f7abe96e32ddfab7951c7aca39eba638f7a";
+const securecookie = "";
 
 function adminAuth(req, res, next) {
   if (req.cookies.Password == securecookie) {
@@ -197,8 +196,8 @@ app.get("/login", (req, res) => {
 
 app.post("/login", (req, res) => {
   if (
-    req.body.username == "Robify@67890" &&
-    req.body.password == "Jain.Robify@67890"
+    req.body.username == "" &&
+    req.body.password == ""
   ) {
     res.cookie("Password", securecookie, { maxAge: 2592000 }).redirect("/link");
   } else {
