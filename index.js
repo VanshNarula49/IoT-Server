@@ -11,10 +11,10 @@ app.use(bodyParser.json());
 import cookieParser from "cookie-parser";
 app.use(cookieParser());
 import { sendUserCredentialsEmail, sendBulkEmails } from "./email.js";
-const adminPassword = "Robify678";
+const adminPassword = process.env.ADMIN_PASSWORD;
+const adminUsername = process.env.ADMIN_USERNAME;
 import { MongoClient } from "mongodb";
-const url = "mongodb+srv://vansh:PXizDcrT4162zteL@cluster.q2mmc.mongodb.net/?appName=Cluster";
-const client = new MongoClient(url);
+const client = new MongoClient(process.env.MONGODB_URL);
 const dbName = "Robify";
 
 async function main() {
@@ -25,7 +25,7 @@ async function main() {
 main().then(console.log).catch(console.error);
 const db = client.db(dbName);
 const UserCollection = db.collection("RobifyUsers");
-const securecookie = "h89fh893h489hr8h483h89h89h8h88H8H8h8h89H89hYUG7y86d5VYR645v;YF76Gb8y6RrtT87yd567n78t6T7BDyubyn5r678bnb5678bf67t78byn67tbfBu8t6f5t7y";
+const securecookie = process.env.SECURE_COOKIE;
 
 function adminAuth(req, res, next) {
   if (req.cookies.Password == securecookie) {
@@ -164,8 +164,8 @@ app.get("/login", (req, res) => {
 
 app.post("/login", (req, res) => {
   if (
-    req.body.username == "Robify@67890" &&
-    req.body.password == "Jain.Robify@67890"
+    req.body.username == adminUsername &&
+    req.body.password == adminPassword
   ) {
     res.cookie("Password", securecookie, { maxAge: 2592000 }).redirect("/link");
   } else {
