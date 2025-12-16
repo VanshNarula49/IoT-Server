@@ -88,9 +88,9 @@ function generateCredentialsEmailTemplate(name, uid) {
                 <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px rgba(37, 49, 81, 0.1); overflow: hidden;">
                     <!-- Header -->
                     <tr>
-                        <td style="background: linear-gradient(135deg, #253151 0%, #1a2438 100%); padding: 50px 30px; text-align: center;">
-                            <img src="http://iot.robify.in/logo.png" alt="Robify Logo" style="max-width: 180px; height: auto; margin-bottom: 20px;" />
-                            <h1 style="margin: 15px 0 0 0; color: #ffffff; font-size: 28px; font-weight: 700; letter-spacing: 0.5px;">
+                        <td style="background: #ffffff; padding: 50px 30px; text-align: center; border-bottom: 3px solid #253151;">
+                            <img src="http://iot.robify.in/logo.png" alt="Robify Logo" style="max-width: 200px; height: auto; margin-bottom: 20px;" />
+                            <h1 style="margin: 15px 0 0 0; color: #253151; font-size: 28px; font-weight: 700; letter-spacing: 0.5px;">
                                 ROBIFY IOT PLATFORM
                             </h1>
                         </td>
