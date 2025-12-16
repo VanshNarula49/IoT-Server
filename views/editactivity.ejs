@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scoring Configuration</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f4f4f4;
+            color: #333;
+            font-family: Arial, sans-serif;
+        }
+        
+        pre {
+            background: #f8f8f8;
+            padding: 10px;
+            border-radius: 5px;
+            overflow: auto;
+        }
+        /* Add this CSS to style the locked fields */
+.locked {
+    background-color: #e9ecef;
+    pointer-events: none;
+}
+.nav-custom {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 20px;
+      background-color: #343a40;
+      color: #fff;
+    }
+    .nav-custom a {
+      color: #fff;
+      text-decoration: none;
+      padding: 0 10px;
+    }
+
+    </style>
+</head>
+<body>
+    <nav class="nav-custom">
+        <a href="/activities"><u>Activities Control</u></a>
+        <span>Activity Dashboard</span>
+      </nav>
+    <div class="container mt-5">
+        <h1 class="text-center mb-4"><%= activity.name %> Scoring Configuration</h1>
+        <button id="editConfig" class="btn btn-warning mt-3 d-none">Edit Config</button>
+        <div class="form-group">
+            <label for="modeSelect">Select Mode:</label>
+            <select id="modeSelect" class="form-control">
+                <option value="timeBased">Time Based</option>
+                <option value="rankBased">Rank Based</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="timeLimit">Time Limit (minutes):</label>
+            <input type="number" id="timeLimit" class="form-control" placeholder="Enter time limit in minutes">
+        </div>
+
+        <div id="timeBasedContainer" class="mode-container">
+            <h2>Time Based Scoring</h2>
+            <button id="addTimeEntry" class="btn btn-primary mb-3">Add Time Entry</button>
+            <!-- Entries will be added here -->
+        </div>
+        
+        <div id="rankBasedContainer" class="mode-container d-none">
+            <h2>Rank Based Scoring</h2>
+            <button id="addRankEntry" class="btn btn-primary mb-3">Add Rank</button>
+            <button id="addRankRangeEntry" class="btn btn-secondary mb-3">Add Rank Range</button>
+            <!-- Entries will be added here -->
+        </div>
+        
+        <button id="generateJson" class="btn btn-success mt-4">Generate Config</button>
+        
+        <pre id="output" class="mt-3 p-3 border"></pre>
+<button id="applyRule" class="btn btn-info mt-3 d-none">Apply Config</button>
+
+    </div>
+    
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+       document.addEventListener('DOMContentLoaded', () => {
+    const modeSelect = document.getElementById('modeSelect');
+    const timeBasedContainer = document.getElementById('timeBasedContainer');
+    const rankBasedContainer = document.getElementById('rankBasedContainer');
+    const addTimeEntryButton = document.getElementById('addTimeEntry');
+    const addRankEntryButton = document.getElementById('addRankEntry');
+    const addRankRangeEntryButton = document.getElementById('addRankRangeEntry');
+    const generateJsonButton = document.getElementById('generateJson');
+    const output = document.getElementById('output');
+    const applyRuleButton = document.getElementById('applyRule');
+    const editConfigButton = document.getElementById('editConfig');
+    let isJsonUpdated = false;
+    let initialJsonOutput = '';
+
+    const lockFields = () => {
+        const inputs = document.querySelectorAll('input, select');
+        inputs.forEach(input => input.classList.add('locked'));
+    };
+
+    const unlockFields = () => {
+        const inputs = document.querySelectorAll('input, select');
+        inputs.forEach(input => input.classList.remove('locked'));
+    };
+
+    const toggleApplyButton = () => {
+        const currentJsonOutput = output.textContent;
+        if (isJsonUpdated && currentJsonOutput !== initialJsonOutput) {
+            applyRuleButton.classList.remove('d-none');
+        } else {
+            applyRuleButton.classList.add('d-none');
+        }
+    };
+
+    const createEntry = (type) => {
+        const entry = document.createElement('div');
+        entry.classList.add('form-row', 'align-items-center', 'mb-2');
+        let innerHTML;
+        if (type === 'time') {
+            innerHTML = `
+                <div class="col">
+                    <input type="number" placeholder="Start Time (min)" class="form-control startTime" required readonly>
+                </div>
+                <div class="col">
+                    <input type="number" placeholder="End Time (min)" class="form-control endTime" required>
+                </div>
+                <div class="col">
+                    <input type="number" placeholder="Score" class="form-control score" required>
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-danger delete-button">Delete</button>
+                </div>
+            `;
+        } else if (type === 'rank') {
+            innerHTML = `
+                <div class="col">
+                    <input type="number" placeholder="Rank" class="form-control rank" required>
+                </div>
+                <div class="col">
+                    <input type="number" placeholder="Score" class="form-control score" required>
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-danger delete-button">Delete</button>
+                </div>
+            `;
+        } else if (type === 'rankRange') {
+            innerHTML = `
+                <div class="col">
+                    <input type="number" placeholder="Start Rank" class="form-control startRank" required>
+                </div>
+                <div class="col">
+                    <input type="number" placeholder="End Rank" class="form-control endRank" required>
+                </div>
+                <div class="col">
+                    <input type="number" placeholder="Score" class="form-control score" required>
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-danger delete-button">Delete</button>
+                </div>
+            `;
+        }
+        entry.innerHTML = innerHTML;
+
+        entry.querySelector('.delete-button').addEventListener('click', () => {
+            entry.remove();
+            if (type === 'rankBased') {
+                validateRanks();
+            }
+            isJsonUpdated = true;
+            toggleApplyButton();
+        });
+
+        const inputs = entry.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.addEventListener('input', () => {
+                isJsonUpdated = true;
+                toggleApplyButton();
+            });
+        });
+
+        return entry;
+    };
+
+    const validateRanks = () => {
+    const rankEntries = Array.from(rankBasedContainer.querySelectorAll('.form-row'));
+    rankEntries.sort((a, b) => {
+        const rankA = parseInt(a.querySelector('.rank')?.value || a.querySelector('.startRank')?.value);
+        const rankB = parseInt(b.querySelector('.rank')?.value || b.querySelector('.startRank')?.value);
+        return rankA - rankB;
+    });
+
+    let valid = true;
+    let previousEndRank = 0;
+
+    for (let i = 0; i < rankEntries.length; i++) {
+        const currentRank = parseInt(rankEntries[i].querySelector('.rank')?.value || rankEntries[i].querySelector('.startRank')?.value);
+        const endRankElement = rankEntries[i].querySelector('.endRank');
+
+        if (endRankElement) {
+            const currentEndRank = parseInt(endRankElement.value);
+            if (currentRank <= previousEndRank || currentRank - previousEndRank > 1) {
+                valid = false;
+                break;
+            }
+            previousEndRank = currentEndRank;
+        } else {
+            if (currentRank <= previousEndRank || currentRank - previousEndRank > 1) {
+                valid = false;
+                break;
+            }
+            previousEndRank = currentRank;
+        }
+    }
+
+    if (!valid) {
+        alert('Ranks cannot be skipped or overlapped.');
+    }
+    return valid;
+};
+
+
+    const populateForm = (jsonObject) => {
+        if (jsonObject.rankBased) {
+            modeSelect.value = 'rankBased';
+            rankBasedContainer.classList.remove('d-none');
+            timeBasedContainer.classList.add('d-none');
+            jsonObject.rankBased.forEach(entry => {
+                if (entry.rankRange) {
+                    const newEntry = createEntry('rankRange');
+                    newEntry.querySelector('.startRank').value = entry.rankRange[0];
+                    newEntry.querySelector('.endRank').value = entry.rankRange[1];
+                    newEntry.querySelector('.score').value = entry.score;
+                    rankBasedContainer.appendChild(newEntry);
+                } else {
+                    const newEntry = createEntry('rank');
+                    newEntry.querySelector('.rank').value = entry.rank;
+                    newEntry.querySelector('.score').value = entry.score;
+                    rankBasedContainer.appendChild(newEntry);
+                }
+            });
+            validateRanks();
+        } else if (jsonObject.timeBased) {
+            modeSelect.value = 'timeBased';
+            timeBasedContainer.classList.remove('d-none');
+            rankBasedContainer.classList.add('d-none');
+            jsonObject.timeBased.forEach(entry => {
+                const newEntry = createEntry('time');
+                newEntry.querySelector('.startTime').value = (entry.startTime / 60).toFixed(2);
+                newEntry.querySelector('.endTime').value = (entry.endTime / 60).toFixed(2);
+                newEntry.querySelector('.score').value = entry.score;
+                timeBasedContainer.appendChild(newEntry);
+            });
+        }
+
+        if (jsonObject.timeLimit) {
+            document.getElementById('timeLimit').value = (jsonObject.timeLimit / 60).toFixed(2); // Convert to minutes for display
+        }
+
+        lockFields();
+        editConfigButton.classList.remove('d-none');
+
+        initialJsonOutput = JSON.stringify(jsonObject, null, 2);
+    };
+
+    modeSelect.addEventListener('change', () => {
+        isJsonUpdated = true;
+        toggleApplyButton();
+        if (modeSelect.value === 'rankBased') {
+            timeBasedContainer.classList.add('d-none');
+            rankBasedContainer.classList.remove('d-none');
+        } else {
+            timeBasedContainer.classList.remove('d-none');
+            rankBasedContainer.classList.add('d-none');
+        }
+    });
+
+    addTimeEntryButton.addEventListener('click', () => {
+        const entry = createEntry('time');
+        const lastEntry = timeBasedContainer.querySelector('.form-row:last-child');
+        if (lastEntry) {
+            const lastEndTime = parseInt(lastEntry.querySelector('.endTime').value) * 60 + 1;
+            entry.querySelector('.startTime').value = (lastEndTime / 60).toFixed(2); // Convert to minutes for display
+        } else {
+            entry.querySelector('.startTime').value = '0.00';
+        }
+        entry.querySelector('.startTime').disabled = true;
+        timeBasedContainer.appendChild(entry);
+        isJsonUpdated = true;
+        toggleApplyButton();
+    });
+
+    addRankEntryButton.addEventListener('click', () => {
+        const entry = createEntry('rank');
+        rankBasedContainer.appendChild(entry);
+        isJsonUpdated = true;
+        toggleApplyButton();
+    });
+
+    addRankRangeEntryButton.addEventListener('click', () => {
+        const entry = createEntry('rankRange');
+        rankBasedContainer.appendChild(entry);
+        isJsonUpdated = true;
+        toggleApplyButton();
+    });
+
+    generateJsonButton.addEventListener('click', () => {
+    let jsonOutput;
+    if (modeSelect.value === 'rankBased') {
+        const rankBasedEntries = rankBasedContainer.querySelectorAll('.form-row');
+
+        const ranks = new Set();
+        let hasSingleRanks = false;
+
+        for (const entry of rankBasedEntries) {
+            const rankInput = entry.querySelector('.rank');
+            const startRankInput = entry.querySelector('.startRank');
+            const endRankInput = entry.querySelector('.endRank');
+
+            if (rankInput) {
+                const rank = parseInt(rankInput.value);
+                if (ranks.has(rank) || rank <= 0) {
+                    alert('Ranks should be unique and start from 1 without gaps.');
+                    return;
+                }
+                ranks.add(rank);
+                hasSingleRanks = true;
+            }
+
+            if (startRankInput && endRankInput) {
+                const startRank = parseInt(startRankInput.value);
+                const endRank = parseInt(endRankInput.value);
+
+                if (startRank >= endRank || startRank <= 0 || endRank <= 0) {
+                    alert('Invalid rank range. Ensure start rank is less than end rank and both are positive.');
+                    return;
+                }
+
+                for (let i = startRank; i <= endRank; i++) {
+                    if (ranks.has(i)) {
+                        alert('Ranks in ranges should not overlap or duplicate.');
+                        return;
+                    }
+                    ranks.add(i);
+                }
+            }
+        }
+
+        if (!hasSingleRanks) {
+            alert('You must add at least one single rank.');
+            return;
+        }
+
+        // Validate ranks before generating JSON
+        if (!validateRanks()) {
+            return;
+        }
+
+        const rankBased = Array.from(rankBasedEntries).map(entry => {
+            const rank = parseInt(entry.querySelector('.rank')?.value);
+            const startRank = parseInt(entry.querySelector('.startRank')?.value);
+            const endRank = parseInt(entry.querySelector('.endRank')?.value);
+            const score = parseInt(entry.querySelector('.score').value);
+
+            if (rank) {
+                return { rank, score };
+            } else {
+                return { rankRange: [startRank, endRank], score };
+            }
+        });
+
+        jsonOutput = { rankBased };
+    } else {
+        const timeBasedEntries = timeBasedContainer.querySelectorAll('.form-row');
+        const timeBased = Array.from(timeBasedEntries).map(entry => {
+            const startTime = Math.floor(parseFloat(entry.querySelector('.startTime').value) * 60);
+            const endTime = parseInt(entry.querySelector('.endTime').value) * 60;
+            const score = parseInt(entry.querySelector('.score').value);
+            if (!score) {
+                alert('Score is mandatory.');
+                return null;
+            }
+            return { startTime, endTime, score };
+        }).filter(entry => entry !== null);
+
+        jsonOutput = { timeBased };
+    }
+
+    const timeLimitInput = document.getElementById('timeLimit').value;
+    if (timeLimitInput) {
+        jsonOutput.timeLimit = parseInt(timeLimitInput) * 60; // Convert to seconds
+    }
+
+    // Display JSON output
+    output.textContent = JSON.stringify(jsonOutput, null, 2);
+    isJsonUpdated = true;
+    toggleApplyButton();
+});
+
+
+    applyRuleButton.addEventListener('click', () => {
+    const jsonOutput = JSON.parse(output.textContent);
+
+    // Post the JSON to the backend
+    fetch(`/update-activity/${window.location.href.split('/')[5]}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(jsonOutput)
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Success:', data);
+        alert('Configuration applied successfully!');
+        isJsonUpdated = false;
+        toggleApplyButton();
+        lockFields();
+        editConfigButton.classList.remove('d-none');
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('There was a problem applying the configuration.');
+    });
+});
+    editConfigButton.addEventListener('click', () => {
+        unlockFields();
+        editConfigButton.classList.add('d-none');
+    });
+
+    const activityJson = <%- scoreConfig %>;
+    populateForm(activityJson); // Ensure this is called to populate the form
+
+    // Initially lock all fields
+    lockFields();
+    editConfigButton.classList.remove('d-none');
+});
+
+
+    </script>
+</body>
+</html>

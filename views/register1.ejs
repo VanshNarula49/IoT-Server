@@ -1,115 +1,231 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/bootstrap.css">
-    <script href="/bootstrap.js"></script>
-
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <title>Register</title>
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding-top: 20px;
+            zoom: 95%
+        }
+
+        .form-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            height: 100%;
+        }
+
+        .header img {
+            width: 100px;
+            margin-bottom: 20px;
+        }
+
+        .email-input {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .email-input input {
+            flex: 1;
+            margin-right: 10px;
+        }
+
+        .table-container {
+            padding: 20px;
+            border-radius: 10px;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-horizontal .form-group {
+            margin-bottom: 15px;
+        }
+
+        .add-email-btn {
+            margin-left: 10px;
+        }
+        .nav-custom {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 20px;
+      background-color: #343a40;
+      color: #fff;
+    }
+    .nav-custom a {
+      color: #fff;
+      text-decoration: none;
+      padding: 0 10px;
+    }
+    </style>
+    <script>
+        function addEmailInput() {
+            const emailContainer = document.getElementById('emailContainer');
+            const div = document.createElement('div');
+            div.className = 'email-input';
+            div.innerHTML = `
+                <input type="email" name="email[]" placeholder="Enter Email ID" class="form-control" required>
+                <button type="button" class="btn btn-danger ml-2" onclick="removeEmailInput(this)"><i class="fas fa-minus-circle"></i></button>
+            `;
+            emailContainer.appendChild(div);
+        }
+
+        function removeEmailInput(button) {
+            button.parentElement.remove();
+        }
+
+        function concatenateEmails(event) {
+            event.preventDefault();
+            const emailInputs = document.querySelectorAll('input[name="email[]"]');
+            const emails = Array.from(emailInputs).map(input => input.value).filter(value => value).join(',');
+            const emailField = document.getElementById('email');
+            emailField.value = emails;
+            event.target.submit();
+        }
+
+        function confirmEmailAll(event) {
+            if (!confirm("Are you sure you want to email all users?")) {
+                event.preventDefault();
+            }
+        }
+    </script>
 </head>
+
 <body>
-  <div align="right">
-    <a href="/link">Menu</a>
-    <a href="/logout">Logout</a>
-</div>
-
-    <div class="container">
-        <div class="row">
-          <div class="col-12">
-            <div align="center">
-            <img src="/logo.png" alt="">
-           
-            <h1>Registration Form</h2>
-              <h6 style="color:rgb(255, 141, 11)">NOTE: DATA HERE IS ONLY UPDATED ON A USERACTION(BUTTON PRESS) AND MAY NOT ALWAYS BE RECENT!!!</h4>
-
-                <h2 style=<%=alertColor%> ><%=msg%></h3>
-                
-                <form action="/register" method="POST">
-                  <label for="fname">Name:</label><br>
-                  <input type="text" id="name" name="name" value=""placeholder="Enter Name"><br>
-                  <label for="lname">Email ID:</label><br>
-                  <input type="email" id="email" name="email" value=""placeholder="Enter Email ID"><br>
-                  <label for="lname">Registration ID:</label><br>
-                  <input type="text" id="rid" name="rid" value=""placeholder="Enter Registration ID"><br><br>
-                  <input type="submit" value="Submit" class="btn btn-dark">
-                </form> 
+    <div class="container-fluid">
        
-           
-           
-           
-           
-           
-           
-           
-           
-           
-           
-           
-           
-           
-           
-           
-           
-           
-            <h1>Registered Users</h1>
+        <nav class="nav-custom">
+            <a href="/link"><u>Menu</u></a>
+            <span>Registration Form</span>
+          </nav>
+        <div class="row">
+            <div class="col-lg-4 col-md-6 col-sm-12">
+                <div class="form-container">
+                    <div class="text-center header">
+                        <img src="/logo.png" alt="Logo">
+                        <h1 class="h4">Registration Form</h1>
+                        <h6 class="text-warning">NOTE: DATA HERE IS ONLY UPDATED ON A USER ACTION (BUTTON PRESS) AND MAY NOT ALWAYS BE RECENT!!!</h6>
+                        <h2 style="<%=alertColor%>"><%=msg%></h2>
+                    </div>
+                    <form action="/register" method="POST" onsubmit="concatenateEmails(event)" class="form-horizontal">
+                        <div class="form-group row">
+                            <label for="name" class="col-sm-3 col-form-label">Name:</label>
+                            <div class="col-sm-9">
+                                <input type="text" id="name" name="name" placeholder="Enter Name" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="email" class="col-sm-3 col-form-label">Email IDs:</label>
+                            <div class="col-sm-9" id="emailContainer">
+                                <div class="email-input">
+                                    <input type="email" name="email[]" placeholder="Enter Email ID" class="form-control" required>
+                                    <button type="button" class="btn btn-primary add-email-btn" onclick="addEmailInput()"><i class="fas fa-plus-circle"></i></button>
+                                </div>
+                            </div>
+                            <input type="hidden" id="email" name="email" value="">
+                        </div>
+                        <div class="form-group row">
+                            <label for="rid" class="col-sm-3 col-form-label">Registration ID:</label>
+                            <div class="col-sm-9">
+                                <input type="text" id="rid" name="rid" placeholder="Enter Registration ID" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-9 offset-sm-3">
+                                <button type="submit" class="btn btn-dark btn-block">Submit</button>
+                            </div>
+                        </div>
+                    </form>
+                    
+                    <form action="/register-multiple" method="POST" enctype="multipart/form-data" class="form-horizontal">
+                        <div class="form-group row">
+                            <label for="csvFile" class="col-sm-3 col-form-label">CSV File:</label>
+                            <div class="col-sm-9">
+                                <input type="file" id="csvFile" name="csvFile" class="form-control" accept=".csv" required>
+                                <a href='/iot.csv'>Download CSV Format</a>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-9 offset-sm-3">
+                    
 
+                                <button type="submit" class="btn btn-dark btn-block">Upload CSV</button>
+                               
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="col-lg-8 col-md-6 col-sm-12">
+                <div class="table-container">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h2 class="text-center">Registered Users</h2>
+                        <form action="/mailall" method="POST" onsubmit="confirmEmailAll(event)">
+                            <input type="submit" value="Email All" class="btn btn-outline-secondary">
+                        </form>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped">
+                            <thead class="thead-dark">
+                                <tr>
+                                    <th scope="col">No.</th>
+                                    <th scope="col">Name</th>
+                                    <th scope="col">Registration ID</th>
+                                    <th scope="col">User ID</th>
+                                    <th scope="col">Email IDs</th>
+                                    <th scope="col">Score</th>
+                                    <th scope="col">Qualified</th>
+                                    <th scope="col">Delete</th>
+                                    <th scope="col">Email</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% for (var i = 0; i < data.length;  i++) { %>
+                                <tr>
+                                    <th scope="row"><%= i+1 %></th>
+                                    <td><%= data[i].name %></td>
+                                    <td><%= data[i].rid %></td>
+                                    <td><%= data[i].uid %></td>
+                                    <td>
+                                        <ul class="list-unstyled">
+                                            <% data[i].email.split(',').forEach(function(email) { %>
+                                                <li><%= email %></li>
+                                            <% }); %>
+                                        </ul>
+                                    </td>
+                                    <td><%= data[i].score %></td>
+                                    <td><%= data[i].qualified %></td>
+                                    <td>
+                                        <form action="/delete" method="POST">
+                                            <input type="hidden" name="regid" value="<%= data[i].rid %>">
+                                            <button type="submit" class="btn btn-danger btn-sm"><i class="far fa-trash-alt"></i></button>
+                                        </form>
+                                    </td>
+                                    <td>
+                                        <form action="/mail" method="POST">
+                                            <input type="hidden" name="regid" value="<%= data[i].rid %>">
+                                            <button type="submit" class="btn btn-success btn-sm"><i class="far fa-envelope"></i></button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                <% } %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
-            <table class="table table-bordered">
-              <thead>
-                <tr>
-                  <th scope="col">No.</th>
-                  <th scope="col">Name</th>
-                  <th scope="col">RegistrationID</th>
-                  <th scope="col">UserID</th>
-                  <th scope="col">EmailID</th>
-
-                  <th scope="col">Score</th>
-                  <th scope="col">Qualified</th>
-
-                  <th scope="col">Delete</th>
-                  <th scope="col">Email</th>
-
-                </tr>
-              </thead>
-              <tbody>
-     
-                <% for (var i = 0; i < data.length;  i++) { %>
-     
-                <tr>
-                  <th scope="row"><%= i+1 %></th>
-                  <td><%= data[i].name %></td>
-                  <td><%= data[i].rid %></td>
-                  <td><%= data[i].uid %></td>
-                  <td><%= data[i].email %></td>
-
-
-                  <td><%= data[i].score %></td>
-                  <td><%= data[i].qualified %></td>
-
-                  <td>
-                    <form action="/delete" method="POST">
-                        <input type="hidden" id="" name="regid" value=<%= data[i].rid %>>
-                  <button type="submit" class="btn btn-danger" >Delete<i class="far fa-trash-alt"></i></button>
-                </form>  
-                <td>
-                <form action="/mail" method="POST">
-                  <input type="hidden" id="" name="regid" value=<%= data[i].rid %>>
-            <button type="submit" class="btn btn-success" >Mail ID<i class="far fa-trash-alt"></i></button>
-          </form> 
-        </td>
-                </td>
-                </tr>
-                <% } %>
-
-              </tbody>
-            </table>
-            <br>
-            <form action="/mailall" method="POST" align="center">
-             <input type="submit" value="Email All" class="btn btn-outline-secondary">
-            </form>
-          </div>
-        </div>
-      </div>
+    </div>
 </body>
+
 </html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Activities</title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+  <style>
+    .table-container {
+      margin: 5px;
+    }
+    .badge-status {
+      padding: 0.5em 1em;
+      font-size: 0.9em;
+    }
+    .btn-action {
+      margin-right: 5px;
+    }
+    .link{
+      margin-left:90%;
+    }
+    .img{
+      display: block;
+  margin-left: auto;
+  margin-right: auto;
+
+    }
+    .nav-custom {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 20px;
+      background-color: #343a40;
+      color: #fff;
+    }
+    .nav-custom a {
+      color: #fff;
+      text-decoration: none;
+      padding: 0 10px;
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav-custom">
+    <a href="/link"><u>Menu</u></a>
+    <span>Activities Control</span>
+  </nav>
+
+  <div class="container">
+ 
+    <img src="/logo.png" class="img" alt="">
+<h3 style="text-align: center;">Activity Manager</h3>
+    <div class="table-container">
+      <table class="table table-striped table-responsive">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Status</th>
+            <th>Legality</th>
+            <th>Start Time</th>
+            <th>Time Left</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% activities.forEach(activity => { %>
+            <% 
+              const now = Date.now();
+              const startTime = activity.startTime;
+              const timeLimit = activity.timeLimit * 1000; // Convert to milliseconds
+              const remainingTime = activity.enabled ? (startTime + timeLimit - now) / 1000 : 0; // Convert to seconds
+            %>
+            <tr>
+              <td><%= activity.name %></td>
+              <td>
+                <span class="badge badge-<%= activity.enabled ? 'success' : 'secondary' %> badge-status">
+                  <%= activity.enabled ? 'Enabled' : 'Disabled' %>
+                </span>
+              </td>
+              <td>
+                <span class="badge badge-<%= activity.legal ? 'primary' : 'danger' %> badge-status">
+                  <%= activity.legal ? 'Legal' : 'Illegal' %>
+                </span>
+              </td>
+              <td><%= activity.startTime ? new Date(activity.startTime).toLocaleString() : 'N/A' %></td>
+              <td id="timeLeft-<%= activity.activityId %>" data-remaining-time="<%= remainingTime %>">
+                <%= remainingTime > 0 ? `${Math.floor(remainingTime / 60)}m ${Math.floor(remainingTime % 60)}s` : 'Expired' %>
+              </td>
+             
+              <td>
+                <a href="/activities/edit/<%= activity.activityId %>" class="btn btn-primary btn-sm btn-action">
+                  <i class="fas fa-edit"></i> Edit
+                </a>
+                <form action="/activities/toggle" method="post" style="display:inline;" onsubmit="return confirmToggle('<%= activity.enabled ? 'Stop'  : 'Start' %>','<%= activity.name %>');">
+                  <input type="hidden" name="activityId" value="<%= activity.activityId %>">
+                  <button class="btn btn-<%= activity.enabled ? 'danger' : 'success' %> btn-sm btn-action" type="submit">
+                    <i class="fas fa-<%= activity.enabled ? 'stop' : 'play' %>"></i> <%= activity.enabled ? 'Stop' : 'Start' %>
+                  </button>
+                </form>
+                <form action="/activities/toggleLegality" method="post" style="display:inline;">
+                  <input type="hidden" name="activityId" value="<%= activity.activityId %>">
+                  <button class="btn btn-<%= activity.legal ? 'danger' : 'success' %> btn-sm btn-action" type="submit">
+                    <i class="fas fa-<%= activity.legal ? 'ban' : 'check' %>"></i> <%= activity.legal ? 'Make Illegal' : 'Make Legal' %>
+                  </button>
+                </form>
+                <form action="/activities/DeleteScores" method="post" style="display:inline;" onsubmit="return confirmToggle('Delelte All Scores for <%= activity.name %> ');">
+                  <input type="hidden" name="activityId" value="<%= activity.activityId %>">
+                  <button class="btn btn-danger btn-sm btn-action" type="submit">
+                    <i class="fa fa-trash"></i>Delete
+                  </button>
+                </form>
+                <a href="/activityDetails/<%= activity.activityId %>" class="btn btn-info btn-sm btn-action">
+                  <i class="fas fa-info-circle"></i> Details
+                </a>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+ function updateCountdown(activityId) {
+  const timeLeftElement = document.getElementById(`timeLeft-${activityId}`);
+  let remainingTime = parseInt(timeLeftElement.dataset.remainingTime, 10);
+
+  if (remainingTime > 0) {
+    const minutes = Math.floor(remainingTime / 60);
+    const seconds = Math.floor(remainingTime % 60);
+    timeLeftElement.textContent = `${minutes}m ${seconds}s`;
+    timeLeftElement.dataset.remainingTime = remainingTime - 1;
+  } else {
+    timeLeftElement.textContent = 'Expired';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  setInterval(() => {
+    <% activities.forEach(activity => { %>
+      <% if (activity.enabled) { %>
+        updateCountdown('<%= activity.activityId %>');
+      <% } %>
+    <% }) %>
+  }, 1000);
+});
+
+    function confirmToggle(action,name = "") {
+      return confirm(`Are you sure you want to ${action} ${name}`);
+    }
+  </script>
+
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js"></script>
+</body>
+</html>

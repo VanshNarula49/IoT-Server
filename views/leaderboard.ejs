@@ -1,73 +1,185 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/bootstrap.css">
-    <script href="/bootstrap.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gameplay Management</title>
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #ffffff;
+      color: #333;
+      font-family: 'Arial', sans-serif;
+    }
 
-    <title>Gameplay</title>
+    .container {
+      margin-top: 20px;
+    }
+
+    .total-score {
+      font-size: 2.5rem;
+      color: #28a745;
+      font-weight: bold;
+    }
+
+    .manual-score {
+      font-size: 1.5rem;
+      color: #dc3545;
+      font-weight: bold;
+    }
+
+    .table-hover tbody tr:hover {
+      background-color: #e9ecef;
+      transition: background-color 0.3s;
+    }
+
+    .table thead th {
+      background-color: #373d42;
+      color: white;
+    }
+
+    .table td,
+    .table th {
+      vertical-align: middle;
+    }
+
+    .btn-action {
+      margin: 2px;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .btn-action:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .table-container {
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      border-radius: 10px;
+    }
+
+    .action-buttons {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .img {
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .nav-custom {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 20px;
+      background-color: #343a40;
+      color: #fff;
+    }
+
+    .nav-custom a {
+      color: #fff;
+      text-decoration: none;
+      padding: 0 10px;
+    }
+  </style>
 </head>
+
 <body>
-  <div align="right">
-    <a href="/link">Menu</a>
+  <nav class="nav-custom">
+    <a href="/link"><u>Menu</u></a>
+    <span>Gameplay Management</span>
+  </nav>
+  <img src="/logo.png" class="img" alt="Logo">
+  <div class="container">
+    <div class="table-container">
+      <table class="table table-bordered table-hover">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Registration ID</th>
+            <th>Email</th>
+            <th>Total Score</th>
+            <th>Manual Score</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="userTable">
+          <!-- Dynamic content will be inserted here -->
+        </tbody>
+      </table>
+    </div>
+  </div>
 
-    <a href="/logout">Logout</a>
-</div>
-    <div class="container">
-        <div class="row">
-          <div class="col-12">
-            <div align="center">
-            <img src="/logo.png" alt="">
-            <h1>Gameplay</h1>
-            <h6 style="color:rgb(255, 141, 11)">NOTE: DATA HERE IS ONLY UPDATED ON A USERACTION(BUTTON PRESS) AND MAY NOT ALWAYS BE RECENT!!!</h4>
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script>
+    let users = [];
 
-        </div>
-            <table class="table table-bordered">
-              <thead>
-                <tr>
-                  <th scope="col">No.</th>
-                  <th scope="col">Name</th>
-                  <th scope="col">RegistrationID</th>
-                  <th scope="col">UserID</th>
-                  <th scope="col">Score</th>
-                  <th scope="col">Qualified</th>
+    const fetchUsers = async () => {
+      const response = await fetch('/userApi');
+      users = await response.json();
+      updateUserTable();
+    };
 
-                  <th scope="col">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-     
-                <% for (var i = 0; i < data.length;  i++) { %>
-     
-                <tr>
-                  <th scope="row"><%= i+1 %></th>
-                  <td><%= data[i].name %></td>
-                  <td><%= data[i].rid %></td>
-                  <td><%= data[i].uid %></td>
+    const updateUserTable = () => {
+      const userTable = $('#userTable');
+      userTable.empty();
 
-                  <td><%= data[i].score %></td>
-                  <td><%= data[i].qualified %></td>
+      users.forEach(user => {
+        const userRow = `<tr>
+          <td>${user.name}</td>
+          <td>${user.rid}</td>
+          <td>${user.email}</td>
+          <td class="total-score">${user.score}</td>
+          <td class="manual-score">${user.manualScore}</td>
+          <td>
+            ${user.qualified ? 
+              '<span class="badge badge-success">Qualified</span>' :
+              '<span class="badge badge-danger">Disqualified</span>'}
+          </td>
+          <td class="action-buttons">
+            <button class="btn btn-success btn-sm btn-action" onclick="updateUser('${user.rid}', 'plus1')">+1 Score</button>
+            <button class="btn btn-danger btn-sm btn-action" onclick="updateUser('${user.rid}', 'minus1')">-1 Score</button>
+            ${user.qualified ? 
+              `<button class="btn btn-warning btn-sm btn-action" onclick="updateUser('${user.rid}', 'disqualify')">Disqualify</button>` :
+              `<button class="btn btn-info btn-sm btn-action" onclick="updateUser('${user.rid}', 'requalify')">Requalify</button>`
+            }
+            <button class="btn btn-primary btn-sm btn-action" onclick="viewUserDetails('${user.uid}')">View Details</button>
+          </td>
+        </tr>`;
+        userTable.append(userRow);
+      });
+    };
 
-                  <td>
-                    <form action="/userAction" method="POST">
-                        <input type="hidden" id="" name="regid" value=<%= data[i].rid %>>
-                  <button type="submit" class="btn btn-danger" name="disqualify" value="true">Disqualify<i class="far fa-trash-alt"></i></button>
-                  <button type="submit" class="btn btn-info"name="requalify" value="true" > Requalify<i class="far fa-trash-alt"></i></button>
+    const updateUser = async (regid, action) => {
+      const formData = new URLSearchParams();
+      formData.append('regid', regid);
+      formData.append(action, 'true');
 
-                  <button type="submit" class="btn btn-success" name="plus1" value="true">+1<i class="far fa-trash-alt"></i></button>
-                  <button type="submit" class="btn btn-warning" name="minus1" value="true"  >-1<i class="far fa-trash-alt"></i></button>
+      await fetch('/userAction', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
+      });
 
-                </form>  
-                
-                </td>
-                </tr>
-                <% } %>
+      fetchUsers();
+    };
 
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+    const viewUserDetails = (uid) => {
+      window.location.href = `/userDetails/${uid}`;
+    };
+
+    $(document).ready(() => {
+      fetchUsers();
+      setInterval(fetchUsers, 5000); // Polling interval for real-time updates
+    });
+  </script>
 </body>
+
 </html>

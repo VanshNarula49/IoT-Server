@@ -1,0 +1,39 @@
+{
+    "activityId": "rank_activity_1",
+    "name": "Rank-Based Activity Example",
+    "enabled": true,
+    "startTime": 1657062000000, 
+    "scoreConfig": {
+      "rankBased": [
+        { "rank": 1, "score": 10 },
+        { "rank": 2, "score": 8 },
+        { "rank": 3, "score": 6 },
+        { "rankRange": [4, 10], "score": 4 }
+      ]
+    },
+    "timeLimit": 3600 
+  }
+
+
+
+
+
+
+
+
+
+  {
+    "activityId": "time_activity_1",
+    "name": "Time-Based Activity Example",
+    "enabled": true,
+    "startTime": 1657062000000, // example timestamp for when activity is enabled
+    "scoreConfig": {
+      "timeBased": [
+        { "startTime": 0, "endTime": 60, "score": 5 },
+        { "startTime": 61, "endTime": 120, "score": 3 },
+        { "startTime": 121, "endTime": 180, "score": 1 }
+      ]
+    },
+    "timeLimit": 600 // example time limit in seconds (10 minutes)
+  }
+  

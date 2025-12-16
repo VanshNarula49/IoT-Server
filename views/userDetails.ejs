@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= user.name %>_<%= user.rid%></title>
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+    .container {
+      margin-top: 20px;
+    }
+    .user-card {
+      border: 1px solid #dee2e6;
+      border-radius: 0.25rem;
+      box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+      padding: 15px;
+      margin-bottom: 20px;
+      background-color: #fff;
+    }
+    .user-card h2 {
+      margin-bottom: 10px;
+    }
+    .total-score {
+      font-size: 2rem;
+      color: #28a745;
+    }
+    .manual-score {
+      font-size: 1.2rem;
+      color: #dc3545;
+    }
+    .badge-qualified {
+      background-color: #a8fdbc;
+    }
+    .badge-not-qualified {
+      background-color: #ec4555;   
+    }
+    .activity-table th, .activity-table td {
+      vertical-align: middle;
+    }
+    .badge-legal {
+      background-color: #a8fdbc;
+    }
+    .badge-illegal {
+      background-color: #ec4555;;
+    }
+    .nav-custom {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 20px;
+      background-color: #343a40;
+      color: #fff;
+    }
+    .nav-custom a {
+      color: #fff;
+      text-decoration: none;
+      padding: 0 10px;
+    }
+    .logo {
+      display: block;
+      margin: 20px auto;
+      max-width: 200px;
+    }
+    .print-button {
+      margin-top: 10px;
+    }
+@media print {
+  .print-button {
+    display: none;
+  }
+}
+
+
+}
+
+  </style>
+</head>
+<body>
+  <nav class="nav-custom">
+    <a href="/gameplay"><u>Gameplay</u></a>
+    <span>User Activity Report</span>
+  </nav>
+  <img src="/logo.png" class="logo">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-4">
+        <div class="user-card">
+          <h2 id="userName"><%= user.name %></h2>
+          <p id="userEmail"><%= user.email %></p>
+          <p>Registration ID: <%= user.rid %></p>
+          <p class="total-score">Total Score: <span id="userScore"><%= user.score %></span></p>
+          <p class="manual-score">Manual Score: <span id="manualScore"> <%= user.manualScore %></span></p>
+          <p>Qualification: <span id="userQualification" class="badge badge-qualified"><%= user.qualified ? 'Qualified' : 'Not Qualified' %></span></p>
+        <button class="btn btn-outline-dark print-button" onclick="printUserDetails()">Print Details</button>
+
+        </div>
+      </div>
+      <div class="col-md-8">
+        <div class="card">
+          <div class="card-header">
+            <h3>Activities</h3>
+          </div>
+          <div class="card-body">
+            <table class="table table-bordered table-hover activity-table">
+              <thead class="thead-light">
+                <tr>
+                  <th>Activity Name</th>
+                  <th>Start Time</th>
+                  <th>End Time</th>
+                  <th>Completiton Time</th>
+                  <th>Score</th>
+                  <th>Rank</th>
+                  <th>Legality</th>
+                </tr>
+              </thead>
+              <tbody id="activityTable">
+                <!-- Dynamic content will be inserted here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script>
+    const userId = '<%= user.uid %>';
+    const leaderboardAPI = '/userApi';
+    const activityAPI = '/activityapi';
+
+    const formatTime = (timestamp) => {
+      const date = new Date(timestamp);
+      return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+    };
+
+    const calculateDuration = (startTime, endTime) => {
+      const durationMs = endTime - startTime;
+      const minutes = Math.floor(durationMs / 60000);
+      const seconds = ((durationMs % 60000) / 1000).toFixed(0);
+      return `${minutes} min ${seconds < 10 ? '0' : ''}${seconds} sec`;
+    };
+
+    const updateUserData = async () => {
+      try {
+        const leaderboardResponse = await fetch(leaderboardAPI);
+        const leaderboardData = await leaderboardResponse.json();
+
+        const activityResponse = await fetch(activityAPI);
+        const activityData = await activityResponse.json();
+
+        const user = leaderboardData.find(u => u.uid === userId);
+
+        if (user) {
+          $('#userName').text(user.name);
+          $('#userEmail').text(user.email);
+          $('#userScore').text(user.score);
+          $('#manualScore').text(user.manualScore);
+          $('#userQualification').text(user.qualified ? 'Qualified' : 'Not Qualified').removeClass('badge-qualified badge-not-qualified').addClass(user.qualified ? 'badge-qualified' : 'badge-not-qualified');
+
+          user.activities.sort((a, b) => b.score - a.score || b.endTime - a.endTime);
+
+          let activitiesHTML = '';
+          user.activities.forEach(activity => {
+            const activityDetails = activityData.find(a => a.activityId === activity.activityId);
+            const isLegal = activityDetails ? activityDetails.legal : false;
+
+            activitiesHTML += `
+              <tr>
+                <td><a href="../activityDetails/${activityDetails.activityId}">${activityDetails ? activityDetails.name : 'Unknown Activity'}</a></td>
+                <td>${formatTime(activity.startTime)}</td>
+                <td>${formatTime(activity.endTime)}</td>
+                <td class="activity-duration">${calculateDuration(activity.startTime, activity.endTime)}</td>
+                <td>${activity.score}</td>
+                <td>${activity.rank !== null ? activity.rank : 'N/A'}</td>
+                <td><span class="badge ${isLegal ? 'badge-legal' : 'badge-illegal'}">${isLegal ? 'Legal' : 'Illegal'}</span></td>
+              </tr>
+            `;
+          });
+
+          $('#activityTable').html(activitiesHTML);
+        }
+      } catch (error) {
+        console.error('Error updating user data:', error);
+      }
+    };
+
+    setInterval(updateUserData, 500);
+    updateUserData();
+
+    // Event delegation for the user name link click
+    $('.container').on('click', '#userName', function() {
+      window.location.href = `/userDetails/${userId}`;
+    });
+
+    // Function to print user details
+const printUserDetails = () => {
+  const logo = document.querySelector('.logo').outerHTML;
+  const printContent = document.querySelector('.container').innerHTML;
+  const originalContent = document.body.innerHTML;
+
+  document.body.innerHTML = `
+    <div>
+      ${logo}
+<h1 align="center">Robify IOT Report Card</h1>
+      <div class="container">
+        ${printContent}
+      </div>
+    </div>
+  `;
+
+  window.print();
+  document.body.innerHTML = originalContent;
+  window.location.reload();
+};
+  </script>
+</body>
+</html>
