@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express from "express";
 import uniqueid from "generate-unique-id";
 const app = express();
@@ -9,15 +10,10 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 import cookieParser from "cookie-parser";
 app.use(cookieParser());
-import formData from "form-data";
-import Mailgun from "mailgun.js";
-const API_KEY = "";
-const DOMAIN = ";
-const mailgun = new Mailgun(formData);
-const emailclient = mailgun.client({ username: "api", key: API_KEY });
+import { sendUserCredentialsEmail, sendBulkEmails } from "./email.js";
 const adminPassword = "Robify678";
 import { MongoClient } from "mongodb";
-const url = "";
+const url = "mongodb+srv://vansh:PXizDcrT4162zteL@cluster.q2mmc.mongodb.net/?appName=Cluster";
 const client = new MongoClient(url);
 const dbName = "Robify";
 
@@ -29,7 +25,7 @@ async function main() {
 main().then(console.log).catch(console.error);
 const db = client.db(dbName);
 const UserCollection = db.collection("RobifyUsers");
-const securecookie = "";
+const securecookie = "h89fh893h489hr8h483h89h89h8h88H8H8h8h89H89hYUG7y86d5VYR645v;YF76Gb8y6RrtT87yd567n78t6T7BDyubyn5r678bnb5678bf67t78byn67tbfBu8t6f5t7y";
 
 function adminAuth(req, res, next) {
   if (req.cookies.Password == securecookie) {
@@ -139,18 +135,9 @@ app.post("/register", adminAuth, async (req, res) => {
 app.post("/mail", adminAuth, async (req, res) => {
   res.redirect("/register");
 
-  let customMessage = (email, name, pswd) => {
-    return {
-      from: "IOT Platform <iotify@robify.in>",
-      to: email,
-      subject: "Email for User ID",
-      text: `Hello ${name}, your user id for IOT Platform is : ${pswd}`,
-    };
-  };
   let mailuser = await UserCollection.findOne({ rid: req.body.regid });
 
-  await emailclient.messages
-    .create(DOMAIN, customMessage(mailuser.email, mailuser.name, mailuser.uid))
+  await sendUserCredentialsEmail(mailuser.email, mailuser.name, mailuser.uid)
     .then((res) => {
       console.log(res);
     })
@@ -162,32 +149,13 @@ app.post("/mail", adminAuth, async (req, res) => {
 app.post("/mailall", adminAuth, async (req, res) => {
   res.redirect("/register");
 
-  let customMessage = (email, name, pswd) => {
-    return {
-      from: "IOT Platform <iotify@robify.in>",
-      to: email,
-      subject: "Email for User ID",
-      text: `Hello ${name}, your user id for IOT Platform is : ${pswd}`,
-    };
-  };
   let userdata = await UserCollection.find({ qualified: true })
     .sort(scoreSort)
     .toArray();
 
-  for (let index = 0; index < userdata.length; index++) {
-    const mailuser = userdata[index];
-    await emailclient.messages
-      .create(
-        DOMAIN,
-        customMessage(mailuser.email, mailuser.name, mailuser.uid)
-      )
-      .then((res) => {
-        console.log(res);
-      })
-      .catch((err) => {
-        console.error(err);
-      });
-  }
+  // Send bulk emails using SES
+  const results = await sendBulkEmails(userdata);
+  console.log("Bulk email results:", results);
 });
 
 app.get("/login", (req, res) => {
@@ -196,8 +164,8 @@ app.get("/login", (req, res) => {
 
 app.post("/login", (req, res) => {
   if (
-    req.body.username == "" &&
-    req.body.password == ""
+    req.body.username == "Robify@67890" &&
+    req.body.password == "Jain.Robify@67890"
   ) {
     res.cookie("Password", securecookie, { maxAge: 2592000 }).redirect("/link");
   } else {
